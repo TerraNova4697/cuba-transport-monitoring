@@ -13,10 +13,10 @@ def parse_args():
     )
 
     parser.add_argument_group("required arguments").add_argument(
-        "--port", type=int, help="port to bind to", required=True
+        "--port", type=int, help="port to bind to", default=8084
     )
 
-    parser.add_argument("--host", type=str, help="host to bind to", default="localhost")
+    parser.add_argument("--host", type=str, help="host to bind to", default="0.0.0.0")
     parser.add_argument(
         "--backlog", type=int, help="backlog for server socket", default=100
     )
@@ -129,7 +129,7 @@ def create_handler(buff_size, mapped_transport):
                             )
                             avl_packages = get_avl_packages(avl[20:-10], number_of_data)
 
-                            await mapped_transport[imei].send_telemetry(avl_packages)
+                            mapped_transport[imei].send_telemetry(avl_packages)
 
                             response = bytes([0, 0, 0, number_of_data])
                             logger.info(f"send response: {response}")

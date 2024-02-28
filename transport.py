@@ -36,7 +36,7 @@ class Transport:
             success = result.get() == TBPublishInfo.TB_ERR_SUCCESS
             logger.info(f"Sent telemetry. Success: {success}, Data: {telemetry}")
 
-    def parse_avl_package(package):
+    def parse_avl_package(self, package):
         data = dict()
 
         logger.info(package)
