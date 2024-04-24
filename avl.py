@@ -25,10 +25,17 @@ class AVL:
             "total_events": data[50:52],
         }
         self.telemetry = {
-            "ts": int(self.mapped_basic_data["timestamp"], 16),
+            "ts": int(data[0:16], 16),
             "values": {
-                "latitude": int(self.mapped_basic_data["latitude"], 16) / 10000000,
-                "lingitude": int(self.mapped_basic_data["longitude"], 16) / 10000000,
+                "priority": int(data[16:18], 16),
+                "latitude": int(data[26:34], 16) / 10000000,
+                "longitude": int(data[18:26], 16) / 10000000,
+                "altitude": int(data[34:38], 16),
+                "angle": int(data[38:42], 16),
+                "satellites": int(data[42:44], 16),
+                "speed": int(data[44:48], 16),
+                "event_io_id": int(data[48:50], 16),
+                "total_events": int(data[50:52], 16),
             },
         }
         self.byte_1_events_total = None
@@ -89,6 +96,8 @@ class AVL:
             self.registered_events[event] = self.verbose_names[event]
 
     def parse_basic_items(self, items):
+        # for item in self.telemetry['values']:
+
         for item in items["base"]:
             self.telemetry["values"][item] = int(self.mapped_basic_data[item], 16)
 
@@ -97,8 +106,10 @@ class AVL:
             for i in range(0, self.byte_1_events_total):
                 event = self.byte_1_events[i * 4 : i * 4 + 4]  # noqa
                 key = event[:2]
-                if self.registered_events.get(key):
-                    verbose_name = self.verbose_names.get(key)
+                verbose_name = self.verbose_names.get(key)
+                if verbose_name:
+                    # if self.registered_events.get(key):
+                    #     verbose_name = self.verbose_names.get(key)
                     self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
         if items["byte_2_events"]:
@@ -125,7 +136,7 @@ class AVL:
                     self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
     def form_telemetry(self, items: dict):
-        self.parse_basic_items(items)
+        # self.parse_basic_items(items)
         self.register_events(items)
         self.load_events(items)
         return self.telemetry
