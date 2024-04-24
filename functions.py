@@ -133,7 +133,7 @@ def create_handler(buff_size, mapped_transport):
 
                             response = bytes([0, 0, 0, number_of_data])
                             logger.info(f"send response: {response}")
-                            # writer.write(response)
+                            writer.write(response)
                     except IndexError:
                         writer.close()
                         logger.info("Unsupported data")
