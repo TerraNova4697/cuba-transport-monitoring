@@ -1,7 +1,7 @@
 import argparse
 import logging
 import asyncio
-
+from avl import AVL
 
 logger = logging.getLogger()
 
@@ -60,7 +60,7 @@ def get_avl_packages(data, num):
             length += eight_bytes * 18
             curr += eight_bytes * 18
 
-        split_parts.append(data[:length])
+        split_parts.append(AVL(data[:length]))
         data = data[length:]
 
     return split_parts
@@ -133,7 +133,7 @@ def create_handler(buff_size, mapped_transport):
 
                             response = bytes([0, 0, 0, number_of_data])
                             logger.info(f"send response: {response}")
-                            writer.write(response)
+                            # writer.write(response)
                     except IndexError:
                         writer.close()
                         logger.info("Unsupported data")

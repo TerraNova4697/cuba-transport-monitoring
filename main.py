@@ -33,7 +33,9 @@ async def start_server(args, mapped_transport):
 def main():
     # Load, instanciate transport && map to its IMEIs
     transports = [
-        Transport(imei=t["imei"], username=t["username"], url=CUBA_URL)
+        Transport(
+            imei=t["imei"], username=t["username"], items=t["items"], url=CUBA_URL
+        )
         for t in transports_config
     ]
     mapped_imeis = {t.imei: t for t in transports}
