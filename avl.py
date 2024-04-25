@@ -8,6 +8,14 @@ class AVL:
         "45": "gnssStatus",
         "01": "digitalInput1",
         "02": "digitalInput2",
+        "b5": "gnssPdop",
+        "b6": "gnssHdop",
+        "42": "externalVoltage",
+        "cd": "gsmCellID",
+        "43": "batteryVoltage",
+        "44": "batteryCurrent",
+        "f1": "activeGsmOperator",
+        "10": "totalOdometer",
     }
 
     def __init__(self, data):

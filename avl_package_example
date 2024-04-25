@@ -1,23 +1,40 @@
 
 
 0000018e9d98e1d0      | timestamp                | [0:16]
+0000018f13544568
 00                    | priority                 | [16:18]
+00
 2a9e9581              | longitude                | [18:26]
+2dd4df5d
 1e774ce5              | latitude                 | [26:34]
+19c795d0
 016f                  | altitude                 | [34:38]
+030c
 0000                  | angle                    | [38:42]
+005f
 0d                    | satellites               | [42:44]
+0c
 0000                  | speed                    | [44:48]
+0015
 
 00                    | event IO ID              | [48:50]
+00
 0e                    | num of total events      | [50:52]
+0c
 07                    | num of 1 byte events     | [52:54]
+05
 ef00 f000 1505 c800 4501 0100 0200               | [54:54 + 1_bytes_total * 4]
+ef01 f001 1504 c800 4501 
 
 05                    | num of 2 byte events
+05
 b5000b 4231a0 cd0b05 431016 440000
-
+b5000b b60008 426b08 430ffa 440000
 02                    | num of 4 byte events
+02
+
 f100009cf1 10001b6bd8
+f100009cf1 100000ca85
 
 00                    | num of 8 byte events
+00
