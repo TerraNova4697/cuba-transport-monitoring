@@ -8,6 +8,11 @@ class AVL:
         "45": "gnssStatus",
         "01": "digitalInput1",
         "02": "digitalInput2",
+        "03": "digitalInput3",
+        "b3": "digitalOutput1",
+        "b4": "digitalOutput2",
+        "09": "analogInput1",
+        "06": "analogInput2",
         "b5": "gnssPdop",
         "b6": "gnssHdop",
         "42": "externalVoltage",
@@ -16,22 +21,11 @@ class AVL:
         "44": "batteryCurrent",
         "f1": "activeGsmOperator",
         "10": "totalOdometer",
+        "c7": "tripOdometer",
     }
 
     def __init__(self, data):
         self.data = data
-        self.mapped_basic_data = {
-            "timestamp": data[0:16],
-            "priority": data[16:18],
-            "longitude": data[18:26],
-            "latitude": data[26:34],
-            "altitude": data[34:38],
-            "angle": data[38:42],
-            "satellites": data[42:44],
-            "speed": data[44:48],
-            "event_io_id": data[48:50],
-            "total_events": data[50:52],
-        }
         self.telemetry = {
             "ts": int(data[0:16], 16),
             "values": {
@@ -93,58 +87,35 @@ class AVL:
         else:
             self.byte_8_events = ""
 
-    def register_events(self, items):
-        all_events = (
-            items["byte_1_events"]
-            + items["byte_2_events"]
-            + items["byte_4_events"]
-            + items["byte_8_events"]
-        )
-        for event in all_events:
-            self.registered_events[event] = self.verbose_names[event]
+    def load_events(self):
+        for i in range(0, self.byte_1_events_total):
+            event = self.byte_1_events[i * 4 : i * 4 + 4]  # noqa
+            key = event[:2]
+            verbose_name = self.verbose_names.get(key)
+            if verbose_name:
+                self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
-    def parse_basic_items(self, items):
-        # for item in self.telemetry['values']:
+        for i in range(0, self.byte_2_events_total):
+            event = self.byte_2_events[i * 6 : i * 6 + 6]  # noqa
+            key = event[:2]
+            verbose_name = self.verbose_names.get(key)
+            if verbose_name:
+                self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
-        for item in items["base"]:
-            self.telemetry["values"][item] = int(self.mapped_basic_data[item], 16)
+        for i in range(0, self.byte_4_events_total):
+            event = self.byte_4_events[i * 10 : i * 10 + 10]  # noqa
+            key = event[:2]
+            verbose_name = self.verbose_names.get(key)
+            if verbose_name:
+                self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
-    def load_events(self, items):
-        if items["byte_1_events"]:
-            for i in range(0, self.byte_1_events_total):
-                event = self.byte_1_events[i * 4 : i * 4 + 4]  # noqa
-                key = event[:2]
-                verbose_name = self.verbose_names.get(key)
-                if verbose_name:
-                    # if self.registered_events.get(key):
-                    #     verbose_name = self.verbose_names.get(key)
-                    self.telemetry["values"][verbose_name] = int(event[2:], 16)
+        for i in range(0, self.byte_8_events_total):
+            event = self.byte_4_events[i * 18 : i * 18 + 18]  # noqa
+            key = event[:2]
+            verbose_name = self.verbose_names.get(key)
+            if verbose_name:
+                self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
-        if items["byte_2_events"]:
-            for i in range(0, self.byte_2_events_total):
-                event = self.byte_2_events[i * 6 : i * 6 + 6]  # noqa
-                key = event[:2]
-                if self.registered_events.get(key):
-                    verbose_name = self.verbose_names.get(key)
-                    self.telemetry["values"][verbose_name] = int(event[2:], 16)
-
-        if items["byte_4_events"]:
-            for i in range(0, self.byte_4_events_total):
-                event = self.byte_4_events[i * 10 : i * 10 + 10]  # noqa
-                key = event[:2]
-                if self.registered_events.get(key):
-                    verbose_name = self.verbose_names.get(key)
-                    self.telemetry["values"][verbose_name] = int(event[2:], 16)
-
-        if items["byte_8_events"]:
-            for i in range(0, self.byte_8_events_total):
-                key = event[:2]
-                if self.registered_events.get(key):
-                    verbose_name = self.verbose_names.get(key)
-                    self.telemetry["values"][verbose_name] = int(event[2:], 16)
-
-    def form_telemetry(self, items: dict):
-        # self.parse_basic_items(items)
-        self.register_events(items)
-        self.load_events(items)
+    def form_telemetry(self):
+        self.load_events()
         return self.telemetry
