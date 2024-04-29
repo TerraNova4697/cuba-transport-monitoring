@@ -1,6 +1,6 @@
 import logging
 
-from tb_device_mqtt import TBDeviceMqttClient, TBPublishInfo
+from tb_gateway_mqtt import TBGatewayMqttClient
 
 
 logger = logging.getLogger()
@@ -8,27 +8,23 @@ logger = logging.getLogger()
 
 class Transport:
 
-    def __init__(self, imei, username, items, url):
+    def __init__(
+        self,
+        imei: str,
+        name: str,
+        url: str,
+        gateway: TBGatewayMqttClient,
+    ):
         self.imei = imei
-        self.username = username
-        self.items = items
-        self.client: TBDeviceMqttClient | None = None
+        self.name = name
         self.url = url
+        self.gateway: TBGatewayMqttClient = gateway
         self.connect()
 
     def connect(self):
-        client = TBDeviceMqttClient(host=self.url, username=self.username)
-        client.connect()
-        self.client = client
-
-    def is_device_connected(self):
-        if not self.client:
-            return False
-        return self.client.is_connected()
+        self.gateway.gw_connect_device(self.name, "teltonics")
 
     def send_telemetry(self, packs):
-        if not self.is_device_connected():
-            self.connect()
 
         data = []
         for pack in packs:
@@ -36,9 +32,8 @@ class Transport:
             data.append(parsed)
 
             # telemetry = {"ts": parsed.get("timestamp"), "values": parsed}
-        result = self.client.send_telemetry(data)
-        success = result.get() == TBPublishInfo.TB_ERR_SUCCESS
-        logger.info(f"Sent telemetry. Success: {success}, Data: {data}")
+        result = self.gateway.gw_send_telemetry(self.name, data)
+        logger.info(f"Sent telemetry. Success: {result}, Data: {data}")
 
     def __repr__(self):
-        return f"Transport: IMEI: {self.imei}; Device token: {self.username}"
+        return f"Transport: IMEI: {self.imei}; Device token: {self.name}"

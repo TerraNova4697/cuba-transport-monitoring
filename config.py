@@ -1,14 +1,15 @@
 import json
 import logging
+import os
+from dotenv import load_dotenv
 
 
 logger = logging.getLogger()
 
-# Load config.json
-with open("./configs/config.json", "r") as config:
-    CONFIGS = json.load(config)
+load_dotenv()
 
-CUBA_URL = CONFIGS["CUBA_URL"]
+CUBA_URL = os.environ["CUBA_URL"]
+TB_GATEWAY_TOKEN = os.environ["TB_GATEWAY_TOKEN"]
 
 # Load cameras.json
 with open("./configs/transports.json", "r") as transports:

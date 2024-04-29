@@ -4,8 +4,11 @@ import logging
 from functions import create_handler
 
 from functions import parse_args
-from config import transports as transports_config, CUBA_URL
+from config import CUBA_URL, TB_GATEWAY_TOKEN
 from transport import Transport
+from database import get_all_transport
+
+from tb_gateway_mqtt import TBGatewayMqttClient
 
 
 log_fh = logging.FileHandler("transport-monitoring.log")
@@ -18,6 +21,7 @@ logger = logging.getLogger()
 
 
 async def start_server(args, mapped_transport):
+    # Will run forever
     server = await asyncio.start_server(
         create_handler(args.buffer, mapped_transport),
         host=args.host,
@@ -31,13 +35,25 @@ async def start_server(args, mapped_transport):
 
 
 def main():
+
+    # Connecting to Gateway
+    gateway = TBGatewayMqttClient(
+        CUBA_URL,
+        1883,
+        TB_GATEWAY_TOKEN,
+    )
+    gateway.connect()
     # Load, instanciate transport && map to its IMEIs
     transports = [
         Transport(
-            imei=t["imei"], username=t["username"], items=t["items"], url=CUBA_URL
+            imei=t.imei,
+            name=t.name,
+            url=CUBA_URL,
+            gateway=gateway,
         )
-        for t in transports_config
+        for t in get_all_transport()
     ]
+    logger.info(f"{transports}")
     mapped_imeis = {t.imei: t for t in transports}
 
     # Parse command line arguments

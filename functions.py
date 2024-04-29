@@ -72,6 +72,7 @@ def codec_8e_checker(codec8_packet):
         and str(codec8_packet[16 : 16 + 2]).upper() != "08"  # noqa
     ):
         # logging.info()
+        logging.info(str(codec8_packet[16 : 16 + 2]).upper())  # noqa
         logging.info("Invalid packet!!!!!!!!!!!!!!!!!!!")
         return False
     else:
@@ -157,60 +158,46 @@ def create_handler(buff_size, mapped_transport):
 
                 # return 01 if received data is preambule and IMEI is registered.
                 try:
-                    # data = chunk.decode()
-
-                    try:
-                        if imei_checker(chunk.hex()):
-                            imei = chunk[2:].decode()
-                            if mapped_transport[imei]:
-                                logger.info(f"decoded imei, {imei}")
-                                logger.info(
-                                    "Send: {!r}".format(
-                                        (1).to_bytes(1, byteorder="big")
-                                    )
-                                )
-                                writer.write((1).to_bytes(1, byteorder="big"))
-                            else:
-                                writer.close()
-                                logger.warning(
-                                    f"Unregistered device {imei} from {writer.get_extra_info('peername')}"
-                                )
-                                await writer.wait_closed()
-                                return
-                    except IndexError:
-                        writer.close()
-                        logger.info("Unsupported data")
-                        await writer.wait_closed()
-                        return
+                    if imei_checker(chunk.hex()):
+                        imei = chunk[2:].decode()
+                        if mapped_transport[imei]:
+                            logger.info(f"decoded imei, {imei}")
+                            logger.info(
+                                "Send: {!r}".format((1).to_bytes(1, byteorder="big"))
+                            )
+                            writer.write((1).to_bytes(1, byteorder="big"))
+                        else:
+                            writer.close()
+                            logger.warning(
+                                f"Unregistered device {imei} from {writer.get_extra_info('peername')}"
+                            )
+                            await writer.wait_closed()
+                            return
                 except UnicodeDecodeError:
                     pass
+                except IndexError:
+                    writer.close()
+                    logger.info("Unsupported data")
+                    await writer.wait_closed()
+                    return
 
                 # Parse data and send telemetry
                 try:
                     avl = chunk.hex()
 
-                    try:
-                        if codec_8e_checker(chunk.hex().replace(" ", "")):
-                            # logger.info(avl)
-                            length = int(avl[8:16], 16)  # noqa
-                            number_of_data = int(avl[18:20], 16)
-                            logger.info(
-                                f"num of data {number_of_data}; length: {length}"
-                            )
-                            avl_packages = get_avl_packages(avl[20:-10], number_of_data)
+                    if codec_8e_checker(chunk.hex().replace(" ", "")):
+                        # logger.info(avl)
+                        length = int(avl[8:16], 16)  # noqa
+                        number_of_data = int(avl[18:20], 16)
+                        logger.info(f"num of data {number_of_data}; length: {length}")
+                        avl_packages = get_avl_packages(avl[20:-10], number_of_data)
 
-                            mapped_transport[imei].send_telemetry(avl_packages)
+                        mapped_transport[imei].send_telemetry(avl_packages)
 
-                            response = (number_of_data).to_bytes(4, byteorder="big")
-                            logger.info(f"send response: {response}")
-                            writer.write(response)
-                    except IndexError:
-                        writer.close()
-                        logger.info("Unsupported data")
-                        logger.info("Connection closed")
-                        await writer.wait_closed()
-                        return
-                except AttributeError:
+                        response = (number_of_data).to_bytes(4, byteorder="big")
+                        logger.info(f"send response: {response}")
+                        writer.write(response)
+                except (AttributeError, IndexError):
                     writer.close()
                     logger.info("Unsupported data")
                     logger.info("Connection closed")
