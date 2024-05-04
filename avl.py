@@ -22,6 +22,7 @@ class AVL:
         "f1": "activeGsmOperator",
         "10": "totalOdometer",
         "c7": "tripOdometer",
+        "fb": "idling",
     }
 
     def __init__(self, data):

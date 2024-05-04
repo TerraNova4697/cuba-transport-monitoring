@@ -140,7 +140,7 @@ def create_handler(buff_size, mapped_transport):
 
                 # Read coming data. Close conn on timeout
                 try:
-                    chunk = await asyncio.wait_for(reader.read(buff_size), 600.0)
+                    chunk = await reader.read(buff_size)
                 except asyncio.TimeoutError:
                     writer.close()
                     logger.info("Client timeout")
@@ -150,7 +150,7 @@ def create_handler(buff_size, mapped_transport):
                 # Close connection if empty data
                 if not chunk:
                     writer.close()
-                    logger.info("Client connection closed")
+                    logger.info("Client connection closed (empty message)")
                     await writer.wait_closed()
                     return
 
@@ -211,7 +211,8 @@ def create_handler(buff_size, mapped_transport):
                 # writer.write(f"HTTP/1.1 200 OK\r\nContent-Length:0\r\n\r\n".encode())
 
                 await writer.drain()
-            except ConnectionResetError:
+            except ConnectionResetError as e:
+                logger.info(f"ConnectionResetError: {e}")
                 writer.close()
                 logger.info("Connection closed")
                 await writer.wait_closed()
