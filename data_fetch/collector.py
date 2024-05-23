@@ -39,5 +39,5 @@ class Collector:
         print(idling)
         device.idling = idling
         curr_date = datetime.fromtimestamp(self.ts_end / 1000)
-        device.date = curr_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        device.date = curr_date
         return device

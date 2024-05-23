@@ -1,0 +1,10 @@
+[Unit]
+Description=Count idling of transport for previous day.
+
+[Service]
+WorkingDirectory=/cuba/cuba-transport-monitoring
+ExecStart=/cuba/cuba-transport-monitoring/venv/bin/python3 /cuba/cuba-transport-monitoring/idling_counter.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
