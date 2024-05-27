@@ -29,14 +29,10 @@ class Collector:
             self.device_to_dict(device) for device in devices_with_online_timeseries
         ]
 
-        for r in reports:
-            print(r.idling)
-
         self.fetcher.save_idlings(reports)
 
     def device_to_dict(self, device: Device) -> dict:
         idling = self.processor.count_idling(device.telemetry)
-        print(idling)
         device.idling = idling
         curr_date = datetime.fromtimestamp(self.ts_end / 1000)
         device.date = curr_date

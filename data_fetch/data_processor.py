@@ -23,6 +23,7 @@ class DataProcessor:
             total_duration int: Downtime in seconds
         """
 
+        self.total_idling_sec = 0
         idling_pointer = None
 
         if not data:
