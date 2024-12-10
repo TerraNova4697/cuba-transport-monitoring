@@ -1,12 +1,23 @@
+"""
+Helping functions.
+"""
+
 import argparse
 import logging
 import asyncio
 from avl import AVL
+from argparse import Namespace
 
 logger = logging.getLogger()
 
 
-def parse_args():
+def parse_args() -> Namespace:
+    """Parse command line and return arguments
+
+    Returns:
+        Namespace: Command line arguments.
+    """
+
     parser = argparse.ArgumentParser(
         description="Asynchronous echo server",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -30,7 +41,16 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_avl_packages(data, num):
+def get_avl_packages(data: str, num: int) -> list:
+    """Splits one string of messages on num parts.
+
+    Args:
+        data (str): AVL package.
+        num (int): Number of messages.
+
+    Returns:
+        list: List of messages.
+    """
     split_parts = []
 
     for i in range(0, num):
@@ -66,14 +86,22 @@ def get_avl_packages(data, num):
     return split_parts
 
 
-def codec_8e_checker(codec8_packet):
+def codec_8e_checker(codec8_packet: str) -> bool:
+    """Checks if CODEC8 packet is correct.
+
+    Args:
+        codec8_packet (str): CODEC8 packer.
+
+    Returns:
+        bool: _description_
+    """
     if (
         str(codec8_packet[16 : 16 + 2]).upper() != "8E"  # noqa
         and str(codec8_packet[16 : 16 + 2]).upper() != "08"  # noqa
     ):
         # logging.info()
         logging.info(str(codec8_packet[16 : 16 + 2]).upper())  # noqa
-        logging.info("Invalid packet!!!!!!!!!!!!!!!!!!!")
+        logging.info("Invalid packet!")
         return False
     else:
         return crc16_arc(codec8_packet)
@@ -107,7 +135,15 @@ def ascii_imei_converter(hex_imei):
     return bytes.fromhex(hex_imei[4:]).decode()
 
 
-def crc16_arc(data):
+def crc16_arc(data: str) -> bool:
+    """Check if there are no errors in data.
+
+    Args:
+        data (str): Data.
+
+    Returns:
+        bool: _description_
+    """
     data_part_length_crc = int(data[8:16], 16)
     data_part_for_crc = bytes.fromhex(data[16 : 16 + 2 * data_part_length_crc])  # noqa
     crc16_arc_from_record = data[
@@ -133,12 +169,22 @@ def crc16_arc(data):
         return False
 
 
-def create_handler(buff_size, mapped_transport):
+def create_handler(buff_size: int, mapped_transport: dict) -> asyncio.coroutine:
+    """Generates TCP handler.
+
+    Args:
+        buff_size (int): Size of message.
+        mapped_transport (dict): Registered transports.
+
+    Returns:
+        asyncio.coroutine: Coroutine. Will handle every request.
+    """
+
     async def handler(reader, writer):
         while True:
             try:
 
-                # Read coming data. Close conn on timeout
+                # Read coming data.
                 try:
                     chunk = await reader.read(buff_size)
                 except asyncio.TimeoutError:
@@ -156,16 +202,19 @@ def create_handler(buff_size, mapped_transport):
 
                 logger.info(f"Received: {chunk}")
 
-                # return 01 if received data is preambule and IMEI is registered.
+                # Return 01 bytes if received data is preambule and IMEI is registered.
+                # Close connection if the vehicle is not registered.
                 try:
                     if imei_checker(chunk.hex()):
                         imei = chunk[2:].decode()
+
                         if mapped_transport[imei]:
                             logger.info(f"decoded imei, {imei}")
                             logger.info(
                                 "Send: {!r}".format((1).to_bytes(1, byteorder="big"))
                             )
                             writer.write((1).to_bytes(1, byteorder="big"))
+
                         else:
                             writer.close()
                             logger.warning(
@@ -173,6 +222,7 @@ def create_handler(buff_size, mapped_transport):
                             )
                             await writer.wait_closed()
                             return
+
                 except UnicodeDecodeError:
                     pass
                 except IndexError:
@@ -185,15 +235,19 @@ def create_handler(buff_size, mapped_transport):
                 try:
                     avl = chunk.hex()
 
+                    # Check if CODEC8 is correct.
                     if codec_8e_checker(chunk.hex().replace(" ", "")):
-                        # logger.info(avl)
+
+                        # Get length of the package and number of AVL packages.
                         length = int(avl[8:16], 16)  # noqa
                         number_of_data = int(avl[18:20], 16)
                         logger.info(f"num of data {number_of_data}; length: {length}")
-                        avl_packages = get_avl_packages(avl[20:-10], number_of_data)
 
+                        # Split AVL packages and send telemetry.
+                        avl_packages = get_avl_packages(avl[20:-10], number_of_data)
                         mapped_transport[imei].send_telemetry(avl_packages)
 
+                        # Send response that message was acknoledged.
                         response = (number_of_data).to_bytes(4, byteorder="big")
                         logger.info(f"send response: {response}")
                         writer.write(response)

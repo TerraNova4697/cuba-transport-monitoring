@@ -1,3 +1,7 @@
+"""
+Program entry module.
+"""
+
 import asyncio
 import logging
 
@@ -7,6 +11,7 @@ from functions import parse_args
 from config import CUBA_URL, TB_GATEWAY_TOKEN
 from transport import Transport
 from database import get_all_transport
+from argparse import Namespace
 
 from tb_gateway_mqtt import TBGatewayMqttClient
 
@@ -20,8 +25,15 @@ _ = logging.basicConfig(
 logger = logging.getLogger()
 
 
-async def start_server(args, mapped_transport):
-    # Will run forever
+async def start_server(args: Namespace, mapped_transport: dict) -> None:
+    """Starts server and passes callback function.
+
+    Args:
+        args (Namespace): Command list arguments.
+        mapped_transport (dict): Transports dictionary.
+    """
+
+    # Create server.
     server = await asyncio.start_server(
         create_handler(args.buffer, mapped_transport),
         host=args.host,
@@ -29,12 +41,14 @@ async def start_server(args, mapped_transport):
         backlog=args.backlog,
     )
 
+    # Run server forever.
     async with server:
         print(f"Serving on {args.host}:{args.port}...")
         await server.serve_forever()
 
 
-def main():
+def main() -> None:
+    """Programm entry point."""
 
     # Connecting to Gateway
     gateway = TBGatewayMqttClient(
@@ -43,6 +57,7 @@ def main():
         TB_GATEWAY_TOKEN,
     )
     gateway.connect()
+
     # Load, instanciate transport && map to its IMEIs
     transports = [
         Transport(

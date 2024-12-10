@@ -1,5 +1,12 @@
-class AVL:
+"""
+Representation of AVL pachage.
+"""
 
+
+class AVL:
+    """Representation of AVL package."""
+
+    # Verbose names for Teltonika events.
     verbose_names = {
         "ef": "ignition",
         "f0": "movement",
@@ -26,7 +33,9 @@ class AVL:
     }
 
     def __init__(self, data):
+        # Raw AVL message
         self.data = data
+        # Parse basic parameters to dict.
         self.telemetry = {
             "ts": int(data[0:16], 16),
             "values": {
@@ -41,6 +50,7 @@ class AVL:
                 "total_events": int(data[50:52], 16),
             },
         }
+        # List of Events.
         self.byte_1_events_total = None
         self.byte_1_events = None
         self.byte_2_events_total = None
@@ -52,7 +62,9 @@ class AVL:
         self.registered_events = {}
         self.parse_events()
 
-    def parse_events(self):
+    def parse_events(self) -> None:
+        """Split strings of every event to string its corresponding list."""
+
         self.byte_1_events_total = int(self.data[52:54], 16)
         if self.byte_1_events_total > 1:
             self.byte_1_events = self.data[
@@ -88,7 +100,9 @@ class AVL:
         else:
             self.byte_8_events = ""
 
-    def load_events(self):
+    def load_events(self) -> None:
+        """Convert every event from hex to int and map to the telemetry dict."""
+
         for i in range(0, self.byte_1_events_total):
             event = self.byte_1_events[i * 4 : i * 4 + 4]  # noqa
             key = event[:2]
@@ -117,6 +131,11 @@ class AVL:
             if verbose_name:
                 self.telemetry["values"][verbose_name] = int(event[2:], 16)
 
-    def form_telemetry(self):
+    def form_telemetry(self) -> dict:
+        """Parse AVL and return dict of telemetry.
+
+        Returns:
+            dict: Telemetry
+        """
         self.load_events()
         return self.telemetry

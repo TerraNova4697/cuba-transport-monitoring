@@ -1,3 +1,7 @@
+"""
+Transport representation.
+"""
+
 import logging
 
 from tb_gateway_mqtt import TBGatewayMqttClient
@@ -7,6 +11,7 @@ logger = logging.getLogger()
 
 
 class Transport:
+    """Transport representation."""
 
     def __init__(
         self,
@@ -21,17 +26,24 @@ class Transport:
         self.gateway: TBGatewayMqttClient = gateway
         self.connect()
 
-    def connect(self):
+    def connect(self) -> None:
+        """Connect device to platform."""
         self.gateway.gw_connect_device(self.name, "teltonics")
 
-    def send_telemetry(self, packs):
+    def send_telemetry(self, packs: list[str]) -> None:
+        """Send given messages on platform.
 
+        Args:
+            packs (list): Messages
+        """
+
+        # Form telemetry.
         data = []
         for pack in packs:
             parsed = pack.form_telemetry()
             data.append(parsed)
 
-            # telemetry = {"ts": parsed.get("timestamp"), "values": parsed}
+        # Send telemetry.
         result = self.gateway.gw_send_telemetry(self.name, data)
         logger.info(f"Sent telemetry. Success: {result}, Data: {data}")
 
