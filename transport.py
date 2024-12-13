@@ -27,7 +27,7 @@ class Transport:
 
     def connect(self) -> None:
         """Connect device to platform."""
-        self.gateway.gw_connect_device(self.name, "teltonics")
+        self.gateway.gw_connect_device(self.name, "Teltonika Transport")
 
     def send_telemetry(self, packs: list[str]) -> None:
         """Send given messages on platform.
