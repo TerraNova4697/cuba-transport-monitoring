@@ -3,26 +3,21 @@ Program entry module.
 """
 
 import asyncio
-import logging
 
+from configs.settings import Settings
+from database.queries.transport_orm import TransportOrm
 from functions import create_handler
 
 from functions import parse_args
-from config import CUBA_URL, TB_GATEWAY_TOKEN
 from transport import Transport
-from database import get_all_transport
 from argparse import Namespace
 
 from tb_gateway_mqtt import TBGatewayMqttClient
 
+from logger import logger
 
-log_fh = logging.FileHandler("transport-monitoring.log")
-_ = logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(lineno)s - %(levelname)s - %(message)s",
-    level=logging.DEBUG,
-    filename="transport-monitoring.log",
-)
-logger = logging.getLogger()
+
+settings = Settings()
 
 
 async def start_server(args: Namespace, mapped_transport: dict) -> None:
@@ -48,25 +43,25 @@ async def start_server(args: Namespace, mapped_transport: dict) -> None:
 
 
 def main() -> None:
-    """Programm entry point."""
+    """Program entry point."""
 
     # Connecting to Gateway
     gateway = TBGatewayMqttClient(
-        CUBA_URL,
+        settings.cuba_url,
         1883,
-        TB_GATEWAY_TOKEN,
+        settings.cuba_gateway_token,
     )
     gateway.connect()
 
-    # Load, instanciate transport && map to its IMEIs
+    # Load, instantiate transport && map to its IMEIs
     transports = [
         Transport(
             imei=t.imei,
             name=t.name,
-            url=CUBA_URL,
+            url=settings.cuba_url,
             gateway=gateway,
         )
-        for t in get_all_transport()
+        for t in TransportOrm.get_all_transport()
     ]
     logger.info(f"{transports}")
     mapped_imeis = {t.imei: t for t in transports}
