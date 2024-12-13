@@ -8,7 +8,7 @@ import asyncio
 from avl import AVL
 from argparse import Namespace
 
-logger = logging.getLogger()
+from logger import logger
 
 
 def parse_args() -> Namespace:

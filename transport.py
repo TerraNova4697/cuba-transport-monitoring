@@ -6,8 +6,7 @@ import logging
 
 from tb_gateway_mqtt import TBGatewayMqttClient
 
-
-logger = logging.getLogger()
+from logger import logger
 
 
 class Transport:
