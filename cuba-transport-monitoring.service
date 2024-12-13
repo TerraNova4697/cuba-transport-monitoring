@@ -2,8 +2,8 @@
 Description=Server listens to transport devices and sends received relemetry on Cuba
 
 [Service]
-WorkingDirectory=/cuba/cuba-transport-monitoring
-ExecStart=/usr/bin/python3.12 /cuba/cuba-transport-monitoring/main.py
+WorkingDirectory=/root/cuba-transport-monitoring
+ExecStart=/root/cuba-transport-monitoring/.venv/bin/python /root/cuba-transport-monitoring/main.py
 Restart=on-failure
 
 [Install]
