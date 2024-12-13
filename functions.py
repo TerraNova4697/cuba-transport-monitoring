@@ -187,6 +187,8 @@ def create_handler(buff_size: int, mapped_transport: dict) -> asyncio.coroutine:
                 # Read coming data.
                 try:
                     chunk = await reader.read(buff_size)
+                    ip, port = writer.get_extra_info('peername')
+                    logger.debug(f"{ip=}; {port=}")
                 except asyncio.TimeoutError:
                     writer.close()
                     logger.info("Client timeout")
@@ -208,7 +210,7 @@ def create_handler(buff_size: int, mapped_transport: dict) -> asyncio.coroutine:
                     if imei_checker(chunk.hex()):
                         imei = chunk[2:].decode()
 
-                        if mapped_transport[imei]:
+                        if mapped_transport.get(imei):
                             logger.info(f"decoded imei, {imei}")
                             logger.info(
                                 "Send: {!r}".format((1).to_bytes(1, byteorder="big"))
