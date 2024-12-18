@@ -40,3 +40,12 @@ class TransportOrm:
                 return session.execute(query).scalars().all()
         except Exception as e:
             logger.exception(e)
+
+    @staticmethod
+    def update_transport(transport: Transport):
+        try:
+            with session_maker() as session:
+                session.add(transport)
+                session.commit()
+        except IntegrityError as e:
+            logger.exception(e)
