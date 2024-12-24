@@ -13,9 +13,10 @@ from .device import Device
 load_dotenv()
 
 
-CUBA_URL = os.environ.get("CUBA_URL")
+CUBA_URL = os.environ.get("CUBA_REST_URL")
 CUBA_USERNAME = os.environ.get("CUBA_USERNAME")
 CUBA_PASSWORD = os.environ.get("CUBA_PASSWORD")
+CUBA_MQTT_URL = os.environ.get("CUBA_URL")
 
 
 class DataFetcher:
@@ -86,13 +87,13 @@ class DataFetcher:
 
                 devices = []
 
-                devices_result = rest_client.get_tenant_devices(500, 0, "teltonics")
+                devices_result = rest_client.get_tenant_devices(500, 0, "Teltonika Transport")
                 for d in devices_result.data:
                     devices.append(Device(d.name, d.id.id))
 
                 for i in range(1, devices_result.total_pages):
                     time.sleep(1)
-                    res = rest_client.get_tenant_devices(500, i, "teltonics")
+                    res = rest_client.get_tenant_devices(500, i, "Teltonika Transport")
                     for d in res.data:
                         devices.append(Device(d.name, d.id.id))
 
@@ -113,7 +114,7 @@ class DataFetcher:
                 rest_client.login(username=CUBA_USERNAME, password=CUBA_PASSWORD)
                 for device in devices:
                     creds = self.get_device_credentials(device.id, rest_client)
-                    client = TBDeviceMqttClient(CUBA_URL, username=creds)
+                    client = TBDeviceMqttClient(CUBA_MQTT_URL, username=creds)
                     client.connect()
                     client.send_telemetry(
                         [
