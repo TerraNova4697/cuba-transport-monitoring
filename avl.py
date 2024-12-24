@@ -30,6 +30,8 @@ class AVL:
         "10": "totalOdometer",
         "c7": "tripOdometer",
         "fb": "idling",
+        "54": "canFuelLevelLtr",
+        "59": "canFuelLevelPrct",
     }
 
     def __init__(self, data):
